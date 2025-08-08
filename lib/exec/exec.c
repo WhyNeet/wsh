@@ -40,12 +40,6 @@ void exec_external(Command *command) {
 
 void exec_command(Command *command) {
   switch (command->type) {
-  case CMD_ECHO:
-    exec_echo(command);
-    break;
-  case CMD_LS:
-    exec_ls(command);
-    break;
   case CMD_EXTERNAL:
     exec_external(command);
     break;

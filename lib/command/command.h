@@ -3,7 +3,7 @@
 
 #include <stddef.h>
 
-typedef enum { CMD_ECHO, CMD_LS, CMD_EXTERNAL } CommandType;
+typedef enum { CMD_TIME, CMD_EXTERNAL } CommandType;
 
 typedef struct {
   CommandType type;

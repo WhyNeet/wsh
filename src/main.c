@@ -13,6 +13,7 @@ int main() {
     readline(input_buffer);
     Command *command = parse_command(input_buffer->buffer);
     exec_command(command);
+    free_command(command);
   }
 
   close_input_buffer(input_buffer);
