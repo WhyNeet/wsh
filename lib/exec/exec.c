@@ -1,6 +1,8 @@
 #include "exec.h"
 #include <dirent.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <sys/wait.h>
 #include <unistd.h>
 
 void exec_echo(Command *command) {
@@ -21,6 +23,21 @@ void exec_ls(Command *command) {
   }
 }
 
+void exec_external(Command *command) {
+  char *file = command->argv[0];
+  pid_t pid = fork();
+  if (pid == 0) {
+    execvp(file, command->argv);
+    perror(command->argv[0]);
+    exit(1);
+  } else if (pid > 0) {
+    int status;
+    waitpid(pid, &status, 0);
+  } else {
+    perror("fork");
+  }
+}
+
 void exec_command(Command *command) {
   switch (command->type) {
   case CMD_ECHO:
@@ -30,6 +47,7 @@ void exec_command(Command *command) {
     exec_ls(command);
     break;
   case CMD_EXTERNAL:
+    exec_external(command);
     break;
   }
 }
