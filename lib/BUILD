@@ -13,3 +13,11 @@ cc_library(
     hdrs = ["command/command.h"],
     visibility = ["//visibility:public"],
 )
+
+cc_library(
+    name = "exec",
+    srcs = ["exec/exec.c"],
+    hdrs = ["exec/exec.h"],
+    visibility = ["//visibility:public"],
+    deps = ["//lib:command"],
+)

@@ -1,5 +1,5 @@
-#ifndef LIB_EXEC_H
-#define LIB_EXEC_H
+#ifndef LIB_COMMAND_H
+#define LIB_COMMAND_H
 
 #include <stddef.h>
 

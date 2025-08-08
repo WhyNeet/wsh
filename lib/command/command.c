@@ -15,18 +15,20 @@ Command *parse_command(char *raw) {
 
   command->type = cmd_type;
 
-  char **argv = NULL;
+  char **argv = (char *)malloc(sizeof(char *));
+  argv[0] = cmd_type_s;
+  size_t argc = 1;
   size_t max_len = 0;
-  size_t argc = 0;
   char *cur_token = strtok(NULL, " ");
 
   while (cur_token != NULL) {
     if (argc + 1 + 1 > max_len) {
       size_t new_len = max_len * 2 + 1;
       argv = realloc(argv, new_len * sizeof(char *));
-      cur_token = strtok(NULL, " ");
     }
     argv[argc] = cur_token;
+    argc += 1;
+    cur_token = strtok(NULL, " ");
   }
 
   command->argv = argv;

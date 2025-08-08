@@ -1,4 +1,5 @@
 #include "lib/command/command.h"
+#include "lib/exec/exec.h"
 #include "lib/input/input.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -11,6 +12,7 @@ int main() {
     printf("wsh> ");
     readline(input_buffer);
     Command *command = parse_command(input_buffer->buffer);
+    exec_command(command);
   }
 
   close_input_buffer(input_buffer);

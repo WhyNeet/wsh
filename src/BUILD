@@ -5,6 +5,7 @@ cc_binary(
     srcs = ["main.c"],
     deps = [
         "//lib:command",
+        "//lib:exec",
         "//lib:input",
     ],
 )
