@@ -6,3 +6,10 @@ cc_library(
     hdrs = ["input/input.h"],
     visibility = ["//visibility:public"],
 )
+
+cc_library(
+    name = "command",
+    srcs = ["command/command.c"],
+    hdrs = ["command/command.h"],
+    visibility = ["//visibility:public"],
+)

@@ -1,6 +1,16 @@
 #ifndef LIB_INPUT_H
 #define LIB_INPUT_H
 
-char *readline(void *src);
+#include <sys/types.h>
+
+typedef struct {
+  char *buffer;
+  size_t buffer_length;
+  ssize_t input_length;
+} InputBuffer;
+
+InputBuffer *new_input_buffer();
+void close_input_buffer(InputBuffer *input_buffer);
+void readline(InputBuffer *buffer);
 
 #endif

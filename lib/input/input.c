@@ -3,31 +3,30 @@
 #include <stdlib.h>
 #include <string.h>
 
-char *readline(void *src) {
-  char buffer[10];
-  char *input = 0;
-  size_t cur_len = 0;
-  size_t cur_max = 0;
-  while (fgets(buffer, sizeof(buffer), src) != NULL) {
-    size_t buf_len = strlen(buffer);
+InputBuffer *new_input_buffer() {
+  InputBuffer *input_buffer = malloc(sizeof(InputBuffer));
+  input_buffer->buffer = NULL;
+  input_buffer->buffer_length = 0;
+  input_buffer->input_length = 0;
 
-    if (cur_len + buf_len + 1 > cur_max) {
-      size_t new_len = cur_max * 2 + 1;
-      if (buf_len + 1 > new_len)
-        new_len = buf_len + 1;
-      char *extra = realloc(input, new_len);
-      if (extra == 0)
-        break;
-      input = extra;
-      cur_max = new_len;
-    }
+  return input_buffer;
+}
 
-    strcpy(input + cur_len, buffer);
-    cur_len += buf_len;
-    if (buffer[buf_len - 1] == '\n') {
-      break;
-    }
+void readline(InputBuffer *input_buffer) {
+  ssize_t bytes_read =
+      getline(&(input_buffer->buffer), &(input_buffer->buffer_length), stdin);
+
+  if (bytes_read <= 0) {
+    printf("Error reading input\n");
+    exit(EXIT_FAILURE);
   }
 
-  return input;
+  // Ignore trailing newline
+  input_buffer->input_length = bytes_read - 1;
+  input_buffer->buffer[bytes_read - 1] = 0;
+}
+
+void close_input_buffer(InputBuffer *input_buffer) {
+  free(input_buffer->buffer);
+  free(input_buffer);
 }
