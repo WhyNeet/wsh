@@ -5,14 +5,14 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-void exec_echo(Command *command) {
-  for (int i = 1; i < command->argc; i++) {
-    printf("%s ", command->argv[i]);
+void exec_echo(Command *cmd) {
+  for (int i = 1; i < cmd->argc; i++) {
+    printf("%s ", cmd->argv[i]);
   }
   printf("\n");
 }
 
-void exec_ls(Command *command) {
+void exec_ls(Command *cmd) {
   char cwd[PATH_MAX];
   getcwd(cwd, sizeof(cwd));
   DIR *d = opendir(cwd);
@@ -23,12 +23,12 @@ void exec_ls(Command *command) {
   }
 }
 
-void exec_external(Command *command) {
-  char *file = command->argv[0];
+void exec_external(Command *cmd) {
+  char *file = cmd->argv[0];
   pid_t pid = fork();
   if (pid == 0) {
-    execvp(file, command->argv);
-    perror(command->argv[0]);
+    execvp(file, cmd->argv);
+    perror(cmd->argv[0]);
     exit(1);
   } else if (pid > 0) {
     int status;
@@ -38,10 +38,41 @@ void exec_external(Command *command) {
   }
 }
 
-void exec_command(Command *command) {
-  switch (command->type) {
+void exec_cd(Command *cmd) {
+  if (cmd->argc < 2) {
+    fprintf(stderr, "cd: missing argument\n");
+    return;
+  }
+
+  if (chdir(cmd->argv[1]) != 0)
+    perror("cd");
+}
+
+void exec_pwd(Command *cmd) {
+  if (cmd->argc > 1) {
+    fprintf(stderr, "pwd: too many arguments\n");
+    return;
+  }
+  char path[PATH_MAX];
+  getcwd(path, sizeof(path));
+  printf("%s\n", path);
+}
+
+void exec_command(Command *cmd) {
+  switch (cmd->type) {
   case CMD_EXTERNAL:
-    exec_external(command);
+    exec_external(cmd);
     break;
+  case CMD_EXIT:
+    exit(0);
+    break;
+  case CMD_TIME:
+    printf("not yet implemented\n");
+    break;
+  case CMD_CD:
+    exec_cd(cmd);
+    break;
+  case CMD_PWD:
+    exec_pwd(cmd);
   }
 }

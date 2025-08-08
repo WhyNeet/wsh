@@ -8,8 +8,14 @@ Command *parse_command(char *raw) {
   char *cmd_type_s = strtok(raw, " ");
 
   CommandType cmd_type = CMD_EXTERNAL;
-  if (strcmp(cmd_type_s, "time") == 0)
+  if (strcmp(cmd_type_s, "exit") == 0)
+    cmd_type = CMD_EXIT;
+  else if (strcmp(cmd_type_s, "time") == 0)
     cmd_type = CMD_TIME;
+  else if (strcmp(cmd_type_s, "cd") == 0)
+    cmd_type = CMD_CD;
+  else if (strcmp(cmd_type_s, "pwd") == 0)
+    cmd_type = CMD_PWD;
 
   command->type = cmd_type;
 
