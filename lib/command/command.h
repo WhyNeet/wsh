@@ -11,7 +11,12 @@ typedef struct {
   size_t argc;
 } Command;
 
-Command *parse_command(char *raw);
+typedef struct {
+  Command *command;
+  size_t size;
+} CommandParseResult;
+
+CommandParseResult parse_command(char *raw, size_t n);
 void free_command(Command *command);
 
 #endif

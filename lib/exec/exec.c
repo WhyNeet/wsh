@@ -76,3 +76,20 @@ void exec_command(Command *cmd) {
     exec_pwd(cmd);
   }
 }
+
+void exec_pipeline(Pipeline *pipeline) {
+  PipelineItem *chain = pipeline->chain;
+  for (int i = 0; i < pipeline->size; i++) {
+    switch (chain[i].type) {
+    case PIPELINE_CMD:
+      exec_command((Command *)chain[i].item);
+      break;
+    case PIPELINE_PIPE:
+      printf("pipe: not yet implemented\n");
+      break;
+    case PIPELINE_STDOUT_REDIRECT:
+      printf("stdout redirect: not yet implemented\n");
+      break;
+    }
+  }
+}

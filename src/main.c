@@ -1,6 +1,7 @@
-#include "lib/command/command.h"
 #include "lib/exec/exec.h"
 #include "lib/input/input.h"
+#include "lib/parser/parser.h"
+#include "lib/pipeline/pipeline.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -11,9 +12,8 @@ int main() {
   while (1) {
     printf("wsh> ");
     readline(input_buffer);
-    Command *command = parse_command(input_buffer->buffer);
-    exec_command(command);
-    free_command(command);
+    Pipeline *pipeline = parse_line(input_buffer->buffer);
+    exec_pipeline(pipeline);
   }
 
   close_input_buffer(input_buffer);

@@ -19,5 +19,21 @@ cc_library(
     srcs = ["exec/exec.c"],
     hdrs = ["exec/exec.h"],
     visibility = ["//visibility:public"],
+    deps = ["//lib:pipeline"],
+)
+
+cc_library(
+    name = "pipeline",
+    srcs = ["pipeline/pipeline.c"],
+    hdrs = ["pipeline/pipeline.h"],
+    visibility = ["//visibility:public"],
     deps = ["//lib:command"],
+)
+
+cc_library(
+    name = "parser",
+    srcs = ["parser/parser.c"],
+    hdrs = ["parser/parser.h"],
+    visibility = ["//visibility:public"],
+    deps = ["//lib:pipeline"],
 )
