@@ -15,6 +15,13 @@ cc_library(
 )
 
 cc_library(
+    name = "redirect",
+    srcs = ["redirect/redirect.c"],
+    hdrs = ["redirect/redirect.h"],
+    visibility = ["//visibility:public"],
+)
+
+cc_library(
     name = "exec",
     srcs = ["exec/exec.c"],
     hdrs = ["exec/exec.h"],
@@ -27,13 +34,6 @@ cc_library(
     srcs = ["pipeline/pipeline.c"],
     hdrs = ["pipeline/pipeline.h"],
     visibility = ["//visibility:public"],
-    deps = ["//lib:command"],
+    deps = ["//lib:command", "//lib:redirect"],
 )
 
-cc_library(
-    name = "parser",
-    srcs = ["parser/parser.c"],
-    hdrs = ["parser/parser.h"],
-    visibility = ["//visibility:public"],
-    deps = ["//lib:pipeline"],
-)

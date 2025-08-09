@@ -6,7 +6,7 @@ cc_binary(
     deps = [
         "//lib:exec",
         "//lib:input",
-        "//lib:parser",
+        "//lib/parser:parser",
         "//lib:pipeline",
     ],
 )

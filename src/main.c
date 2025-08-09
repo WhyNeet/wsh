@@ -14,6 +14,7 @@ int main() {
     readline(input_buffer);
     Pipeline *pipeline = parse_line(input_buffer->buffer);
     exec_pipeline(pipeline);
+    free_pipeline(pipeline);
   }
 
   close_input_buffer(input_buffer);

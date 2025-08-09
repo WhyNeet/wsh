@@ -82,7 +82,7 @@ void exec_pipeline(Pipeline *pipeline) {
   for (int i = 0; i < pipeline->size; i++) {
     switch (chain[i].type) {
     case PIPELINE_CMD:
-      exec_command((Command *)chain[i].item);
+      exec_command(chain[i].item);
       break;
     case PIPELINE_PIPE:
       printf("pipe: not yet implemented\n");
