@@ -1,7 +1,9 @@
 #include "exec.h"
 #include <dirent.h>
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/shm.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
@@ -25,17 +27,9 @@ void exec_ls(Command *cmd) {
 
 void exec_external(Command *cmd) {
   char *file = cmd->argv[0];
-  pid_t pid = fork();
-  if (pid == 0) {
-    execvp(file, cmd->argv);
-    perror(cmd->argv[0]);
-    exit(1);
-  } else if (pid > 0) {
-    int status;
-    waitpid(pid, &status, 0);
-  } else {
-    perror("fork");
-  }
+  execvp(file, cmd->argv);
+  perror(cmd->argv[0]);
+  exit(1);
 }
 
 void exec_cd(Command *cmd) {
@@ -58,11 +52,49 @@ void exec_pwd(Command *cmd) {
   printf("%s\n", path);
 }
 
-void exec_command(Command *cmd) {
+void exec_command(Command *cmd, Redirect *stdout_redirect) {
+  int initial_stdout = -1;
+  int fd = -1;
+  if (stdout_redirect != NULL) {
+    initial_stdout = dup(STDOUT_FILENO);
+    if (initial_stdout == -1) {
+      perror("dup");
+      return;
+    }
+
+    fd = open(stdout_redirect->into, O_WRONLY | O_TRUNC | O_CREAT, 0644);
+    if (fd == -1) {
+      perror("fopen");
+      close(initial_stdout);
+      return;
+    }
+    if (dup2(fd, STDOUT_FILENO) == -1) {
+      perror("dup2");
+      close(fd);
+      close(initial_stdout);
+      return;
+    }
+  }
+
   switch (cmd->type) {
-  case CMD_EXTERNAL:
-    exec_external(cmd);
+  case CMD_EXTERNAL: {
+    pid_t pid = fork();
+    switch (pid) {
+    case -1:
+      perror("fork");
+      break;
+    case 0:
+      exec_external(cmd);
+
+      exit(0);
+    default: {
+      int status = 0;
+      waitpid(pid, &status, 0);
+      break;
+    }
+    }
     break;
+  }
   case CMD_EXIT:
     exit(0);
     break;
@@ -75,21 +107,32 @@ void exec_command(Command *cmd) {
   case CMD_PWD:
     exec_pwd(cmd);
   }
+
+  if (stdout_redirect != NULL) {
+    fflush(stdout);
+    dup2(initial_stdout, STDOUT_FILENO);
+    close(initial_stdout);
+    close(fd);
+  }
 }
 
 void exec_pipeline(Pipeline *pipeline) {
   PipelineItem *chain = pipeline->chain;
-  for (int i = 0; i < pipeline->size; i++) {
-    switch (chain[i].type) {
+  Command *command = chain[0].item;
+  Redirect *redirect = NULL;
+
+  if (pipeline->size > 1) {
+    switch (chain[1].type) {
     case PIPELINE_CMD:
-      exec_command(chain[i].item);
-      break;
+      exit(1);
     case PIPELINE_PIPE:
       printf("pipe: not yet implemented\n");
       break;
     case PIPELINE_STDOUT_REDIRECT:
-      printf("stdout redirect: not yet implemented\n");
+      redirect = chain[1].item;
       break;
     }
   }
+
+  exec_command(command, redirect);
 }

@@ -1,6 +1,4 @@
 #include "pipeline.h"
-#include "lib/command/command.h"
-#include "lib/redirect/redirect.h"
 #include <stdio.h>
 #include <stdlib.h>
 

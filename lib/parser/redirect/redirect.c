@@ -23,13 +23,16 @@ RedirectParseResult parse_redirect(char *raw, size_t n) {
     bool is_end = (offset + size) >= n;
 
     if (!is_path_char || is_end) {
-      into = malloc(sizeof(char) * size);
+      into = malloc(sizeof(char) * (size + 1));
       strncpy(into, raw + offset, size);
+      into[size + 1] = '\0';
       break;
     }
 
     size++;
   }
+
+  redirect->into = into;
 
   RedirectParseResult result;
   result.redirect = redirect;

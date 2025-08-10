@@ -2,6 +2,7 @@
 #define LIB_PIPELINE_H
 
 #include "lib/command/command.h"
+#include "lib/redirect/redirect.h"
 #include <sys/types.h>
 
 typedef enum {

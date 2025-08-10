@@ -26,7 +26,9 @@ cc_library(
     srcs = ["exec/exec.c"],
     hdrs = ["exec/exec.h"],
     visibility = ["//visibility:public"],
-    deps = ["//lib:pipeline"],
+    deps = [
+        "//lib:pipeline",
+    ],
 )
 
 cc_library(
@@ -34,6 +36,8 @@ cc_library(
     srcs = ["pipeline/pipeline.c"],
     hdrs = ["pipeline/pipeline.h"],
     visibility = ["//visibility:public"],
-    deps = ["//lib:command", "//lib:redirect"],
+    deps = [
+        "//lib:command",
+        "//lib:redirect",
+    ],
 )
-
