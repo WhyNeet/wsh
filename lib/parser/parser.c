@@ -1,6 +1,7 @@
 #include "parser.h"
 #include "lib/parser/command/command.h"
 #include "lib/parser/redirect/redirect.h"
+#include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -15,6 +16,13 @@ Pipeline *parse_line(char *line) {
   size_t chain_capacity = 1;
 
   while (current < line_size) {
+    if (isspace(line[current])) {
+      while (isspace(line[current])) {
+        current++;
+      }
+
+      continue;
+    }
     if (chain_current + 1 > chain_capacity) {
       size_t new_size = chain_capacity * 2 + 1;
       chain = realloc(chain, new_size * sizeof(PipelineItem));

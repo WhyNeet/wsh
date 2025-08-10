@@ -3,7 +3,6 @@
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/shm.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
@@ -52,27 +51,72 @@ void exec_pwd(Command *cmd) {
   printf("%s\n", path);
 }
 
-void exec_command(Command *cmd, Redirect *stdout_redirect) {
-  int initial_stdout = -1;
-  int fd = -1;
-  if (stdout_redirect != NULL) {
-    initial_stdout = dup(STDOUT_FILENO);
-    if (initial_stdout == -1) {
-      perror("dup");
+void exec_command(Command *cmd, Redirect **stdout_redirects,
+                  size_t num_redirects) {
+  int *fds = malloc(sizeof(int) * num_redirects);
+  int initial_stdout = dup(STDOUT_FILENO);
+  int pipe_fd[2];
+  if (initial_stdout == -1) {
+    perror("dup");
+    return;
+  }
+
+  if (num_redirects > 0) {
+    // open all files
+    for (int i = 0; i < num_redirects; i++) {
+      fds[i] =
+          open(stdout_redirects[i]->into, O_WRONLY | O_TRUNC | O_CREAT, 0644);
+      if (fds[i] == -1) {
+        perror("fopen");
+        close(initial_stdout);
+        return;
+      }
+    }
+
+    // create a pipe to capture stdout
+    if (pipe(pipe_fd) == -1) {
+      perror("pipe");
+      for (int i = 0; i < num_redirects; i++) {
+        close(fds[i]);
+      }
+      close(initial_stdout);
+      free(fds);
       return;
     }
 
-    fd = open(stdout_redirect->into, O_WRONLY | O_TRUNC | O_CREAT, 0644);
-    if (fd == -1) {
-      perror("fopen");
+    pid_t tee_pid = fork();
+    switch (tee_pid) {
+    case -1:
+      perror("fork");
+      for (int i = 0; i < num_redirects; i++) {
+        close(fds[i]);
+      }
       close(initial_stdout);
+      close(pipe_fd[0]);
+      close(pipe_fd[1]);
+      free(fds);
       return;
-    }
-    if (dup2(fd, STDOUT_FILENO) == -1) {
-      perror("dup2");
-      close(fd);
-      close(initial_stdout);
-      return;
+    case 0:
+      // child process will write output to files
+      // child process does not need to write
+      close(pipe_fd[1]);
+      char buffer[4096];
+      ssize_t n;
+      while ((n = read(pipe_fd[0], buffer, sizeof(buffer))) > 0) {
+        for (int i = 0; i < num_redirects; i++) {
+          write(fds[i], buffer, n);
+        }
+      }
+      close(pipe_fd[0]);
+      for (int i = 0; i < num_redirects; i++) {
+        close(fds[i]);
+      }
+      exit(0);
+    default:
+      // parent process will redirect stdout to a pipe
+      close(pipe_fd[0]);
+      dup2(pipe_fd[1], STDOUT_FILENO);
+      break;
     }
   }
 
@@ -85,7 +129,6 @@ void exec_command(Command *cmd, Redirect *stdout_redirect) {
       break;
     case 0:
       exec_external(cmd);
-
       exit(0);
     default: {
       int status = 0;
@@ -108,31 +151,41 @@ void exec_command(Command *cmd, Redirect *stdout_redirect) {
     exec_pwd(cmd);
   }
 
-  if (stdout_redirect != NULL) {
+  if (num_redirects > 0) {
     fflush(stdout);
+    close(pipe_fd[1]);
     dup2(initial_stdout, STDOUT_FILENO);
     close(initial_stdout);
-    close(fd);
+    int status;
+    waitpid(-1, &status, 0);
   }
 }
 
 void exec_pipeline(Pipeline *pipeline) {
   PipelineItem *chain = pipeline->chain;
   Command *command = chain[0].item;
-  Redirect *redirect = NULL;
+  Redirect **redirects = malloc(sizeof(Redirect *));
 
-  if (pipeline->size > 1) {
-    switch (chain[1].type) {
+  size_t redirects_capacity = 1;
+  size_t num_redirects = 0;
+
+  for (int i = 1; i < pipeline->size; i++) {
+    switch (chain[i].type) {
     case PIPELINE_CMD:
       exit(1);
     case PIPELINE_PIPE:
       printf("pipe: not yet implemented\n");
       break;
     case PIPELINE_STDOUT_REDIRECT:
-      redirect = chain[1].item;
+      if (num_redirects + 1 > redirects_capacity) {
+        size_t new_size = redirects_capacity * 2 + 1;
+        redirects = realloc(redirects, new_size * sizeof(Redirect *));
+        redirects_capacity = new_size;
+      }
+      redirects[num_redirects++] = chain[i].item;
       break;
     }
   }
 
-  exec_command(command, redirect);
+  exec_command(command, redirects, num_redirects);
 }
