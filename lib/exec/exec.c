@@ -53,7 +53,7 @@ void exec_pwd(Command *cmd) {
 
 void exec_command(Command *cmd, Redirect **stdout_redirects,
                   size_t num_redirects) {
-  int *fds = malloc(sizeof(int) * num_redirects);
+  int *fds;
   int initial_stdout = dup(STDOUT_FILENO);
   int pipe_fd[2];
   if (initial_stdout == -1) {
@@ -62,6 +62,7 @@ void exec_command(Command *cmd, Redirect **stdout_redirects,
   }
 
   if (num_redirects > 0) {
+    fds = malloc(sizeof(int) * num_redirects);
     // open all files
     for (int i = 0; i < num_redirects; i++) {
       fds[i] =
@@ -188,4 +189,6 @@ void exec_pipeline(Pipeline *pipeline) {
   }
 
   exec_command(command, redirects, num_redirects);
+
+  free(redirects);
 }
